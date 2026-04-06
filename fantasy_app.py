@@ -838,7 +838,7 @@ def page_repechage(league_data: dict, max_week: int):
         vi = int(v)
         return f"+{vi}" if vi > 0 else str(vi)
 
-    styler = df.style.applymap(_style_delta, subset=["Δ H2H", "Δ Performance"]).format(
+    styler = df.style.map(_style_delta, subset=["Δ H2H", "Δ Performance"]).format(
         {"Δ H2H": _fmt_delta, "Δ Performance": _fmt_delta,
          "Rang repêchage": "{:.0f}", "Rang H2H": "{:.0f}", "Rang Performance": "{:.0f}"}
     )
