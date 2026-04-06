@@ -240,12 +240,6 @@ def is_json_complete(path: Path) -> bool:
             print(f"  {path.name}: pas de is_display_only -> ré-extraction nécessaire")
             return False
 
-        # Check no zero-stat matchups
-        for m in d.get("matchups", []):
-            if all(v == 0 for v in m.get("team1_stats", {}).values()):
-                print(f"  {path.name}: stats à 0 semaine {m['week']} -> ré-extraction nécessaire")
-                return False
-
         # Check expected number of weeks (matchups per week = n_teams / 2)
         n_teams = len(d.get("teams", []))
         matchups = d.get("matchups", [])
@@ -255,6 +249,11 @@ def is_json_complete(path: Path) -> bool:
             week_matchups = [m for m in matchups if m["week"] == w]
             if len(week_matchups) < matchups_per_week:
                 print(f"  {path.name}: semaine {w} incomplète ({len(week_matchups)}/{matchups_per_week}) -> ré-extraction nécessaire")
+                return False
+            # Partial zero-stats = bad extraction; all zeros = legitimate empty week
+            zeros = [all(v == 0 for v in m.get("team1_stats", {}).values()) for m in week_matchups]
+            if any(zeros) and not all(zeros):
+                print(f"  {path.name}: stats partiellement à 0 semaine {w} -> ré-extraction nécessaire")
                 return False
 
         print(f"  {path.name}: complet ({len(weeks)} semaines, {n_teams} équipes, standings OK)")

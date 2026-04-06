@@ -43,9 +43,6 @@ def is_league_json_complete(path: Path) -> bool:
             return False
         if not any("is_display_only" in c for c in d.get("categories", [])):
             return False
-        for m in d.get("matchups", []):
-            if all(v == 0 for v in m.get("team1_stats", {}).values()):
-                return False
         n_teams = len(d.get("teams", []))
         matchups = d.get("matchups", [])
         weeks = set(m["week"] for m in matchups)
@@ -53,6 +50,11 @@ def is_league_json_complete(path: Path) -> bool:
         for w in weeks:
             week_matchups = [m for m in matchups if m["week"] == w]
             if len(week_matchups) < matchups_per_week:
+                return False
+            # Check for partial zero-stats (some matchups zero, others not = bad extraction)
+            # If ALL matchups in a week are zero, it's a legitimate empty week (All-Star break)
+            zeros = [all(v == 0 for v in m.get("team1_stats", {}).values()) for m in week_matchups]
+            if any(zeros) and not all(zeros):
                 return False
         return True
     except (json.JSONDecodeError, KeyError):
