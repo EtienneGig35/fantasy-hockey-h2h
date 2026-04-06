@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+.yfpy/
+token.json
+private.json
+.claude/
