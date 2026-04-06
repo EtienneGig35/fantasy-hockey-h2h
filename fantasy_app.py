@@ -411,6 +411,144 @@ def display_tables(tables: dict, categories_info: list, n_teams: int, mode: str,
     _show_highlights(generate_highlights(cls, scoring_cats_info, "classement", mode))
 
 
+def _analyze_combined_score(h2h_rank: pd.Series, perf_rank: pd.Series,
+                            diff: pd.Series, n_teams: int) -> list[str]:
+    """Generate insights for the combined score table."""
+    highlights = []
+
+    # Dominant teams: top 3 in BOTH rankings
+    top_half = n_teams // 2
+    for team in h2h_rank.sort_values().index:
+        hr = int(h2h_rank[team])
+        pr = int(perf_rank[team])
+        if hr <= 3 and pr <= 3:
+            highlights.append(
+                f"**{team}** domine sur tous les plans (#{hr} H2H, #{pr} performance)")
+        elif hr <= top_half and pr <= top_half and hr <= 3:
+            highlights.append(
+                f"**{team}** est solidement en tête (#{hr} H2H, #{pr} performance)")
+
+    # Luckiest: biggest negative diff (H2H rank much better than perf rank)
+    lucky = diff.sort_values()
+    for team in lucky.head(3).index:
+        d = int(diff[team])
+        if d < -1:
+            hr = int(h2h_rank[team])
+            pr = int(perf_rank[team])
+            highlights.append(
+                f"**{team}** bénéficie de chance : #{hr} au H2H malgré une performance de #{pr} "
+                f"({abs(d)} rangs au-dessus de sa valeur réelle)")
+
+    # Unluckiest: biggest positive diff (perf rank much better than H2H rank)
+    unlucky = diff.sort_values(ascending=False)
+    for team in unlucky.head(3).index:
+        d = int(diff[team])
+        if d > 1:
+            hr = int(h2h_rank[team])
+            pr = int(perf_rank[team])
+            highlights.append(
+                f"**{team}** est malchanceux : #{pr} en performance mais seulement #{hr} au H2H "
+                f"({d} rangs en dessous de sa valeur réelle)")
+
+    # Teams where both ranks match perfectly
+    exact_matches = [t for t in diff.index if diff[t] == 0]
+    if exact_matches:
+        names = ", ".join(f"**{t}**" for t in exact_matches[:3])
+        highlights.append(
+            f"{names} — rang H2H = rang performance (classement fidèle à la réalité)")
+
+    return highlights
+
+
+def _analyze_power_profile(norm_data: pd.DataFrame, win_pct: pd.DataFrame,
+                           cats: list[str], h2h_rank: pd.Series,
+                           inverse_cats: set) -> list[str]:
+    """Generate detailed per-category insights from power profile."""
+    highlights = []
+
+    # For each team, compute avg gap between normalized perf and win%
+    # A high perf but low win% = unlucky in that category
+    luck_by_team_cat = {}
+    for team in norm_data.index:
+        for cat in cats:
+            perf = norm_data.loc[team, cat]
+            wp = win_pct.loc[team, cat] * 100
+            gap = perf - wp  # positive = perf > wins (unlucky), negative = wins > perf (lucky)
+            luck_by_team_cat[(team, cat)] = gap
+
+    # Biggest unlucky spots: high perf, low win%
+    sorted_unlucky = sorted(luck_by_team_cat.items(), key=lambda x: x[1], reverse=True)
+    seen_teams_unlucky = set()
+    for (team, cat), gap in sorted_unlucky:
+        if gap >= 25 and team not in seen_teams_unlucky:
+            perf = int(norm_data.loc[team, cat])
+            wp = int(win_pct.loc[team, cat] * 100)
+            highlights.append(
+                f"**{team}** est malchanceux en **{cat}** : performance de {perf}/100 mais seulement {wp}% de victoires")
+            seen_teams_unlucky.add(team)
+        if len(seen_teams_unlucky) >= 3:
+            break
+
+    # Biggest lucky spots: low perf, high win%
+    sorted_lucky = sorted(luck_by_team_cat.items(), key=lambda x: x[1])
+    seen_teams_lucky = set()
+    for (team, cat), gap in sorted_lucky:
+        if gap <= -25 and team not in seen_teams_lucky:
+            perf = int(norm_data.loc[team, cat])
+            wp = int(win_pct.loc[team, cat] * 100)
+            highlights.append(
+                f"**{team}** est chanceux en **{cat}** : performance de {perf}/100 mais {wp}% de victoires")
+            seen_teams_lucky.add(team)
+        if len(seen_teams_lucky) >= 3:
+            break
+
+    # Dominant categories: teams with both perf >= 80 and win% >= 80
+    dominators = {}
+    for team in norm_data.index:
+        dom_cats = []
+        for cat in cats:
+            if norm_data.loc[team, cat] >= 80 and win_pct.loc[team, cat] >= 0.80:
+                dom_cats.append(cat)
+        if len(dom_cats) >= 2:
+            dominators[team] = dom_cats
+    for team, dom_cats in sorted(dominators.items(), key=lambda x: -len(x[1])):
+        highlights.append(
+            f"**{team}** domine dans {', '.join(f'**{c}**' for c in dom_cats)} "
+            f"(perf. et victoires > 80%)")
+    if len(highlights) > 10:
+        highlights = highlights[:10]
+
+    # Weak categories: teams with both perf <= 20 and win% <= 20
+    weak_teams = {}
+    for team in norm_data.index:
+        weak_cats = []
+        for cat in cats:
+            if norm_data.loc[team, cat] <= 20 and win_pct.loc[team, cat] <= 0.20:
+                weak_cats.append(cat)
+        if len(weak_cats) >= 2:
+            weak_teams[team] = weak_cats
+    for team, weak_cats in sorted(weak_teams.items(), key=lambda x: -len(x[1])):
+        highlights.append(
+            f"**{team}** est en difficulté dans {', '.join(f'**{c}**' for c in weak_cats)} "
+            f"(perf. et victoires < 20%)")
+        if len(highlights) >= 12:
+            break
+
+    # Most polarized team (biggest spread between best and worst categories)
+    spreads = {}
+    for team in norm_data.index:
+        vals = [norm_data.loc[team, c] for c in cats]
+        spreads[team] = max(vals) - min(vals)
+    most_polarized = max(spreads, key=spreads.get)
+    best_cat = max(cats, key=lambda c: norm_data.loc[most_polarized, c])
+    worst_cat = min(cats, key=lambda c: norm_data.loc[most_polarized, c])
+    highlights.append(
+        f"**{most_polarized}** est le plus polarisé : {int(norm_data.loc[most_polarized, best_cat])}/100 en "
+        f"**{best_cat}** vs {int(norm_data.loc[most_polarized, worst_cat])}/100 en **{worst_cat}**")
+
+    return highlights
+
+
 def page_resume(league_data: dict, max_week: int):
     """Page Résumé : score combiné en premier, puis sous-classements en dépliants, puis visualisations."""
     n_teams = len(league_data["teams"])
@@ -447,6 +585,10 @@ def page_resume(league_data: dict, max_week: int):
         style_diff_gradient(combined, "Différentiel", max_abs_diff),
         use_container_width=True,
     )
+
+    # --- Analyse du score combiné ---
+    combined_highlights = _analyze_combined_score(h2h_rank, perf_rank, diff, n_teams)
+    _show_highlights(combined_highlights)
 
     # --- Sous-classements en dépliants ---
     with st.expander("Classement H2H"):
@@ -603,6 +745,10 @@ def page_resume(league_data: dict, max_week: int):
         yaxis=dict(autorange="reversed"),
     )
     st.plotly_chart(fig_power, use_container_width=True)
+
+    # Analyse du profil de puissance
+    power_highlights = _analyze_power_profile(norm_data, win_pct_sorted, ranking_cats, h2h_rank, inverse_cats)
+    _show_highlights(power_highlights)
 
     # 4. Heatmap : % victoire par catégorie pour toutes les équipes
     st.markdown("**Heatmap — % de victoire par catégorie**")
