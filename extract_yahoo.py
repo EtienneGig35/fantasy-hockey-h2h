@@ -129,6 +129,23 @@ def extract_standings(query, teams_lookup: dict) -> list[dict]:
     return standings
 
 
+def extract_draft_order(query, teams_lookup: dict) -> list[dict]:
+    """Extract draft order (round 1 picks) from Yahoo API."""
+    draft_order = []
+    try:
+        draft_results = query.get_league_draft_results()
+        round1 = [d for d in draft_results if d.round == 1]
+        for pick in sorted(round1, key=lambda x: x.pick):
+            name = teams_lookup.get(pick.team_key, pick.team_key)
+            draft_order.append({
+                "name": name,
+                "draft_position": pick.pick,
+            })
+    except Exception as e:
+        print(f"  Warning: could not extract draft order: {e}")
+    return draft_order
+
+
 def _fetch_team_stats_raw(query, team_key: str, week: int, retries: int = 3) -> dict:
     """Fetch per-category stats for a team for a given week via raw Yahoo API."""
     import time
@@ -314,6 +331,10 @@ def main():
     standings = extract_standings(query, teams_lookup)
     print(f"  Found standings for {len(standings)} teams")
 
+    print("Extracting draft order...")
+    draft_order = extract_draft_order(query, teams_lookup)
+    print(f"  Found draft order for {len(draft_order)} teams")
+
     # Clean categories for output (remove stat_id)
     categories_out = [
         {
@@ -333,6 +354,7 @@ def main():
         "categories": categories_out,
         "matchups": matchups,
         "standings": standings,
+        "draft_order": draft_order,
     }
 
     output_dir = Path("leagues")

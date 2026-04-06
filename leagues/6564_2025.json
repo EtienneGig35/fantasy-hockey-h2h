@@ -4899,5 +4899,55 @@
       "pct": 0.388,
       "rank": 12
     }
+  ],
+  "draft_order": [
+    {
+      "name": "Clutterbuck",
+      "draft_position": 1
+    },
+    {
+      "name": "Touched By A Crosby",
+      "draft_position": 2
+    },
+    {
+      "name": "Sorokin my drai nuts",
+      "draft_position": 3
+    },
+    {
+      "name": "Foxtrax",
+      "draft_position": 4
+    },
+    {
+      "name": "Snoozers",
+      "draft_position": 5
+    },
+    {
+      "name": "North Kariya",
+      "draft_position": 6
+    },
+    {
+      "name": "Alex the gr8",
+      "draft_position": 7
+    },
+    {
+      "name": "Sherwood Forest",
+      "draft_position": 8
+    },
+    {
+      "name": "Mitch’s new bike fund",
+      "draft_position": 9
+    },
+    {
+      "name": "Littlefoot",
+      "draft_position": 10
+    },
+    {
+      "name": "Kana Momonogi",
+      "draft_position": 11
+    },
+    {
+      "name": "Dylan's Cousin",
+      "draft_position": 12
+    }
   ]
 }

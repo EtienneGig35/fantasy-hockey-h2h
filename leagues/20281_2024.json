@@ -5133,5 +5133,55 @@
       "pct": 0.408,
       "rank": 12
     }
+  ],
+  "draft_order": [
+    {
+      "name": "McDaddy",
+      "draft_position": 1
+    },
+    {
+      "name": "Nathan macdaddy",
+      "draft_position": 2
+    },
+    {
+      "name": "Touched By A Crosby",
+      "draft_position": 3
+    },
+    {
+      "name": "SitOnYourFace",
+      "draft_position": 4
+    },
+    {
+      "name": "Daddy Sherwood",
+      "draft_position": 5
+    },
+    {
+      "name": "Foxtrax",
+      "draft_position": 6
+    },
+    {
+      "name": "Mathieu's Nifty Team",
+      "draft_position": 7
+    },
+    {
+      "name": "Mitch’s new golf club fund",
+      "draft_position": 8
+    },
+    {
+      "name": "Clutterbuck",
+      "draft_position": 9
+    },
+    {
+      "name": "Kana Momonogi",
+      "draft_position": 10
+    },
+    {
+      "name": "David Suzuki",
+      "draft_position": 11
+    },
+    {
+      "name": "MacKenzie's Daddy",
+      "draft_position": 12
+    }
   ]
 }

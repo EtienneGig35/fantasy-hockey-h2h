@@ -5133,5 +5133,55 @@
       "pct": 0.339,
       "rank": 12
     }
+  ],
+  "draft_order": [
+    {
+      "name": "Pls Help",
+      "draft_position": 1
+    },
+    {
+      "name": "Mitch’s new golf club fund",
+      "draft_position": 2
+    },
+    {
+      "name": "KangaROIDS",
+      "draft_position": 3
+    },
+    {
+      "name": "Fox You - by Copley",
+      "draft_position": 4
+    },
+    {
+      "name": "Parmesan Cheese",
+      "draft_position": 5
+    },
+    {
+      "name": "Cursed Goalies",
+      "draft_position": 6
+    },
+    {
+      "name": "Call me Karl son",
+      "draft_position": 7
+    },
+    {
+      "name": "Nose and coKane",
+      "draft_position": 8
+    },
+    {
+      "name": "Chasing ONE Brian",
+      "draft_position": 9
+    },
+    {
+      "name": "Clutterbuck",
+      "draft_position": 10
+    },
+    {
+      "name": "Touched By A Crosby",
+      "draft_position": 11
+    },
+    {
+      "name": "Take it on the Oetterside",
+      "draft_position": 12
+    }
   ]
 }

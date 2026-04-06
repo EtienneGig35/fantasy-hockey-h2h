@@ -5367,5 +5367,55 @@
       "pct": 0.358,
       "rank": 12
     }
+  ],
+  "draft_order": [
+    {
+      "name": "Mitch’s new golf club fund",
+      "draft_position": 1
+    },
+    {
+      "name": "Drai these nuts in Seider",
+      "draft_position": 2
+    },
+    {
+      "name": "Junior Mints",
+      "draft_position": 3
+    },
+    {
+      "name": "KangaROIDS",
+      "draft_position": 4
+    },
+    {
+      "name": "Kana Momonogi",
+      "draft_position": 5
+    },
+    {
+      "name": "SitOnYourFace",
+      "draft_position": 6
+    },
+    {
+      "name": "Touched By A Crosby",
+      "draft_position": 7
+    },
+    {
+      "name": "Clutterbuck",
+      "draft_position": 8
+    },
+    {
+      "name": "Rowen Needs Diapers",
+      "draft_position": 9
+    },
+    {
+      "name": "Cursed Goalies",
+      "draft_position": 10
+    },
+    {
+      "name": "Connor’s team",
+      "draft_position": 11
+    },
+    {
+      "name": "Parmesan Cheese",
+      "draft_position": 12
+    }
   ]
 }

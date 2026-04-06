@@ -5372,5 +5372,63 @@
       "pct": 0.31,
       "rank": 14
     }
+  ],
+  "draft_order": [
+    {
+      "name": "Next Year pour All for One...",
+      "draft_position": 1
+    },
+    {
+      "name": "Hutson pour le Norris",
+      "draft_position": 2
+    },
+    {
+      "name": "Alexis's Astounding Team",
+      "draft_position": 3
+    },
+    {
+      "name": "Street Spirit",
+      "draft_position": 4
+    },
+    {
+      "name": "All for one",
+      "draft_position": 5
+    },
+    {
+      "name": "Boupa's glorious team",
+      "draft_position": 6
+    },
+    {
+      "name": "Wild Thing",
+      "draft_position": 7
+    },
+    {
+      "name": "El Professor",
+      "draft_position": 8
+    },
+    {
+      "name": "Les AssBout",
+      "draft_position": 9
+    },
+    {
+      "name": "Brady— quel Dindon",
+      "draft_position": 10
+    },
+    {
+      "name": "Dustin Pennertration",
+      "draft_position": 11
+    },
+    {
+      "name": "Tittsburgh Feelers",
+      "draft_position": 12
+    },
+    {
+      "name": "Cereal Killers",
+      "draft_position": 13
+    },
+    {
+      "name": "Phil The JForce",
+      "draft_position": 14
+    }
   ]
 }

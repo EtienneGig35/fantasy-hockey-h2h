@@ -772,6 +772,160 @@ def page_resume(league_data: dict, max_week: int):
     st.plotly_chart(fig_heat, use_container_width=True)
 
 
+def page_repechage(league_data: dict, max_week: int):
+    """Page Repêchage : comparaison rang de repêchage vs classements actuels."""
+    n_teams = len(league_data["teams"])
+    draft_order = league_data.get("draft_order", [])
+    if not draft_order:
+        st.info("Aucune donnée de repêchage disponible pour cette ligue.")
+        return
+
+    pooler = compute_all_tables(league_data, "pooler", max_week, exclude_from_ranking=get_display_only_cats(league_data))
+
+    h2h = pooler["h2h_points"]
+    h2h_rank = h2h["Rang H2H"]
+    perf_rank = pooler["classement"]["Somme des rangs"].rank(method="min").astype(int)
+
+    # Build draft position lookup
+    draft_pos = {d["name"]: d["draft_position"] for d in draft_order}
+
+    # Build comparison table
+    teams = list(h2h_rank.index)
+    rows = []
+    for team in teams:
+        dp = draft_pos.get(team, None)
+        if dp is None:
+            continue
+        hr = int(h2h_rank[team])
+        pr = int(perf_rank[team])
+        diff_h2h = dp - hr  # positive = improved from draft position
+        diff_perf = dp - pr
+        rows.append({
+            "Équipe": team,
+            "Rang repêchage": dp,
+            "Rang H2H": hr,
+            "Rang Performance": pr,
+            "Δ H2H": diff_h2h,
+            "Δ Performance": diff_perf,
+        })
+
+    df = pd.DataFrame(rows).set_index("Équipe").sort_values("Rang repêchage")
+
+    # --- Table ---
+    st.subheader("Comparaison repêchage vs classements")
+    st.caption(
+        "Compare la position de repêchage de chaque pooler avec son rang H2H et son rang de performance actuels. "
+        "Un Δ positif signifie que le pooler a progressé par rapport à son rang de repêchage. "
+        "Un Δ négatif signifie qu'il a régressé."
+    )
+
+    max_abs = max(df["Δ H2H"].abs().max(), df["Δ Performance"].abs().max(), 1)
+
+    def _style_delta(val):
+        try:
+            v = int(val)
+        except (ValueError, TypeError):
+            return ""
+        if v == 0:
+            return ""
+        intensity = min(abs(v) / max_abs, 1.0)
+        if v > 0:
+            return f"background-color: rgba(155, 235, 155, {0.2 + 0.6 * intensity}); color: rgb(0, {60 + int(40 * intensity)}, 0)"
+        else:
+            return f"background-color: rgba(255, {199 - int(70 * intensity)}, {199 - int(70 * intensity)}, {0.2 + 0.6 * intensity}); color: rgb({120 + int(36 * intensity)}, 0, 0)"
+
+    def _fmt_delta(v):
+        vi = int(v)
+        return f"+{vi}" if vi > 0 else str(vi)
+
+    styler = df.style.applymap(_style_delta, subset=["Δ H2H", "Δ Performance"]).format(
+        {"Δ H2H": _fmt_delta, "Δ Performance": _fmt_delta,
+         "Rang repêchage": "{:.0f}", "Rang H2H": "{:.0f}", "Rang Performance": "{:.0f}"}
+    )
+    st.dataframe(styler, use_container_width=True)
+
+    # --- Highlights ---
+    highlights = []
+
+    # Biggest improvers
+    best_h2h = df["Δ H2H"].idxmax()
+    if df.loc[best_h2h, "Δ H2H"] > 0:
+        highlights.append(
+            f"**{best_h2h}** est la meilleure progression H2H : repêché #{df.loc[best_h2h, 'Rang repêchage']}, "
+            f"maintenant #{df.loc[best_h2h, 'Rang H2H']} (+{int(df.loc[best_h2h, 'Δ H2H'])} places)")
+
+    best_perf = df["Δ Performance"].idxmax()
+    if best_perf != best_h2h and df.loc[best_perf, "Δ Performance"] > 0:
+        highlights.append(
+            f"**{best_perf}** est la meilleure progression en performance : repêché #{df.loc[best_perf, 'Rang repêchage']}, "
+            f"maintenant #{df.loc[best_perf, 'Rang Performance']} (+{int(df.loc[best_perf, 'Δ Performance'])} places)")
+
+    # Biggest drops
+    worst_h2h = df["Δ H2H"].idxmin()
+    if df.loc[worst_h2h, "Δ H2H"] < -1:
+        highlights.append(
+            f"**{worst_h2h}** a le plus régressé au H2H : repêché #{df.loc[worst_h2h, 'Rang repêchage']}, "
+            f"maintenant #{df.loc[worst_h2h, 'Rang H2H']} ({int(df.loc[worst_h2h, 'Δ H2H'])} places)")
+
+    worst_perf = df["Δ Performance"].idxmin()
+    if worst_perf != worst_h2h and df.loc[worst_perf, "Δ Performance"] < -1:
+        highlights.append(
+            f"**{worst_perf}** a le plus régressé en performance : repêché #{df.loc[worst_perf, 'Rang repêchage']}, "
+            f"maintenant #{df.loc[worst_perf, 'Rang Performance']} ({int(df.loc[worst_perf, 'Δ Performance'])} places)")
+
+    # Teams holding their draft position
+    stable = df[(df["Δ H2H"].abs() <= 1) & (df["Δ Performance"].abs() <= 1)]
+    if not stable.empty:
+        names = ", ".join(f"**{t}**" for t in stable.index[:3])
+        highlights.append(f"{names} — fidèles à leur rang de repêchage (±1 place)")
+
+    # Divergence: H2H improved but perf dropped (or vice versa)
+    for team in df.index:
+        dh = int(df.loc[team, "Δ H2H"])
+        dp = int(df.loc[team, "Δ Performance"])
+        if dh >= 3 and dp <= -2:
+            highlights.append(
+                f"**{team}** surprend au H2H (+{dh}) malgré une baisse de performance ({dp}) — chanceux?")
+        elif dp >= 3 and dh <= -2:
+            highlights.append(
+                f"**{team}** performe bien (+{dp} en perf.) mais stagne au H2H ({dh}) — malchanceux?")
+
+    _show_highlights(highlights)
+
+    # --- Visualization: Bump chart ---
+    st.markdown("---")
+    st.subheader("Évolution depuis le repêchage")
+    st.caption(
+        "Chaque ligne montre la trajectoire d'un pooler depuis son rang de repêchage "
+        "vers son rang H2H actuel et son rang de performance."
+    )
+
+    fig = go.Figure()
+    x_labels = ["Repêchage", "Performance", "H2H"]
+    for _, row in df.iterrows():
+        team = row.name
+        y_vals = [row["Rang repêchage"], row["Rang Performance"], row["Rang H2H"]]
+        # Green if improved overall, red if dropped, gray if stable
+        net = row["Rang repêchage"] - row["Rang H2H"]
+        color = "#2ecc71" if net > 1 else "#e74c3c" if net < -1 else "#95a5a6"
+        fig.add_trace(go.Scatter(
+            x=x_labels, y=y_vals,
+            mode="lines+markers+text",
+            name=team,
+            line=dict(color=color, width=2),
+            marker=dict(size=10),
+            text=[str(int(v)) for v in y_vals],
+            textposition="top center",
+        ))
+
+    fig.update_layout(
+        yaxis=dict(autorange="reversed", title="Rang", dtick=1),
+        height=max(500, n_teams * 40),
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
 # --- Mise en page ---
 st.set_page_config(page_title="Fantasy Hockey H2H Analyzer", layout="wide")
 
@@ -810,8 +964,10 @@ else:
 st.title(league_title)
 
 # Navigation
-page = st.sidebar.radio("Navigation", ["Stats par pooler", "Stats des adversaires", "Résumé"],
-                        key="navigation_page")
+pages = ["Stats par pooler", "Stats des adversaires", "Résumé"]
+if league_data and league_data.get("draft_order"):
+    pages.append("Repêchage")
+page = st.sidebar.radio("Navigation", pages, key="navigation_page")
 
 # Section d'importation
 st.sidebar.markdown("---")
@@ -917,3 +1073,7 @@ if league_data:
     elif page == "Résumé":
         st.header("Résumé")
         page_resume(league_data, max_week)
+
+    elif page == "Repêchage":
+        st.header("Repêchage")
+        page_repechage(league_data, max_week)
