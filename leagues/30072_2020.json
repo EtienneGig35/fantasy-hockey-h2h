@@ -3167,5 +3167,63 @@
       "pct": 0.363,
       "rank": 14
     }
+  ],
+  "draft_order": [
+    {
+      "name": "Game on Wayne !",
+      "draft_position": 1
+    },
+    {
+      "name": "gibiers de potence",
+      "draft_position": 2
+    },
+    {
+      "name": "Street Spirit",
+      "draft_position": 3
+    },
+    {
+      "name": "Cereal Killers",
+      "draft_position": 4
+    },
+    {
+      "name": "Marty",
+      "draft_position": 5
+    },
+    {
+      "name": "peZ",
+      "draft_position": 6
+    },
+    {
+      "name": "Phil",
+      "draft_position": 7
+    },
+    {
+      "name": "Dustin Pennertration",
+      "draft_position": 8
+    },
+    {
+      "name": "All for one",
+      "draft_position": 9
+    },
+    {
+      "name": "I like Turtles",
+      "draft_position": 10
+    },
+    {
+      "name": "Yalpé Nismou",
+      "draft_position": 11
+    },
+    {
+      "name": "Pure Luck",
+      "draft_position": 12
+    },
+    {
+      "name": "Wild Thing",
+      "draft_position": 13
+    },
+    {
+      "name": "Commish by default",
+      "draft_position": 14
+    }
   ]
 }

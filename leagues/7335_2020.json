@@ -3027,5 +3027,55 @@
       "pct": 0.353,
       "rank": 12
     }
+  ],
+  "draft_order": [
+    {
+      "name": "HartBroken",
+      "draft_position": 1
+    },
+    {
+      "name": "HiPP0",
+      "draft_position": 2
+    },
+    {
+      "name": "Clutterbuck",
+      "draft_position": 3
+    },
+    {
+      "name": "Touched By A Crosby",
+      "draft_position": 4
+    },
+    {
+      "name": "COVID-21",
+      "draft_position": 5
+    },
+    {
+      "name": "Chasing ONE Brian",
+      "draft_position": 6
+    },
+    {
+      "name": "Cursed Goalies",
+      "draft_position": 7
+    },
+    {
+      "name": "Mulan obviously",
+      "draft_position": 8
+    },
+    {
+      "name": "Mighty Ducks",
+      "draft_position": 9
+    },
+    {
+      "name": "TheClutterbuckLegacy",
+      "draft_position": 10
+    },
+    {
+      "name": "Easy Money League",
+      "draft_position": 11
+    },
+    {
+      "name": "ArabianNight Trudeau",
+      "draft_position": 12
+    }
   ]
 }
