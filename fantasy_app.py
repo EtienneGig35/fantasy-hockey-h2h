@@ -428,27 +428,27 @@ def _analyze_combined_score(h2h_rank: pd.Series, perf_rank: pd.Series,
             highlights.append(
                 f"**{team}** est solidement en tête (#{hr} H2H, #{pr} performance)")
 
-    # Luckiest: biggest negative diff (H2H rank much better than perf rank)
-    lucky = diff.sort_values()
-    for team in lucky.head(3).index:
+    # Unluckiest: biggest negative diff (good perf rank but bad H2H rank)
+    unlucky = diff.sort_values()
+    for team in unlucky.head(3).index:
         d = int(diff[team])
         if d < -1:
             hr = int(h2h_rank[team])
             pr = int(perf_rank[team])
             highlights.append(
-                f"**{team}** bénéficie de chance : #{hr} au H2H malgré une performance de #{pr} "
-                f"({abs(d)} rangs au-dessus de sa valeur réelle)")
+                f"**{team}** est malchanceux : #{pr} en performance mais #{hr} au H2H "
+                f"({abs(d)} rangs perdus par rapport à sa valeur réelle)")
 
-    # Unluckiest: biggest positive diff (perf rank much better than H2H rank)
-    unlucky = diff.sort_values(ascending=False)
-    for team in unlucky.head(3).index:
+    # Luckiest: biggest positive diff (bad perf rank but good H2H rank)
+    lucky = diff.sort_values(ascending=False)
+    for team in lucky.head(3).index:
         d = int(diff[team])
         if d > 1:
             hr = int(h2h_rank[team])
             pr = int(perf_rank[team])
             highlights.append(
-                f"**{team}** est malchanceux : #{pr} en performance mais seulement #{hr} au H2H "
-                f"({d} rangs en dessous de sa valeur réelle)")
+                f"**{team}** bénéficie de chance : #{hr} au H2H malgré une performance de #{pr} "
+                f"({d} rangs gagnés par rapport à sa valeur réelle)")
 
     # Teams where both ranks match perfectly
     exact_matches = [t for t in diff.index if diff[t] == 0]
