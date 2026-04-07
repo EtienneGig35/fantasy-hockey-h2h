@@ -119,7 +119,10 @@ def generate_highlights(df: pd.DataFrame, categories_info: list[dict], table_typ
                 best_val = df.loc[best_team, cat]
                 worst_team = df[cat].idxmin()
             if table_type == "win_pct":
-                highlights.append(f"**{best_team}** domine en **{cat}** avec un taux de victoire de {best_val:.0%}")
+                if is_adv:
+                    highlights.append(f"Les adversaires de **{best_team}** dominent en **{cat}** avec un taux de victoire de {best_val:.0%}")
+                else:
+                    highlights.append(f"**{best_team}** domine en **{cat}** avec un taux de victoire de {best_val:.0%}")
             else:
                 highlights.append(f"**{best_team}** mène en **{cat}** ({best_val:.2f})")
             if len(highlights) >= 2:
@@ -135,7 +138,10 @@ def generate_highlights(df: pd.DataFrame, categories_info: list[dict], table_typ
             top_counts[best] = top_counts.get(best, 0) + 1
         if top_counts:
             most_dominant = max(top_counts, key=top_counts.get)
-            highlights.append(f"**{most_dominant}** est en tête dans {top_counts[most_dominant]}/{len(cats)} catégories")
+            if is_adv and table_type == "win_pct":
+                highlights.append(f"Les adversaires de **{most_dominant}** dominent dans {top_counts[most_dominant]}/{len(cats)} catégories")
+            else:
+                highlights.append(f"**{most_dominant}** est en tête dans {top_counts[most_dominant]}/{len(cats)} catégories")
 
         # Highest variance category
         variances = {cat: df[cat].std() / (df[cat].mean() + 1e-9) for cat in cats}
@@ -372,10 +378,16 @@ def display_tables(tables: dict, categories_info: list, n_teams: int, mode: str,
 
     # --- 4. % de victoire par catégorie ---
     st.subheader("4. % de victoire par catégorie")
-    st.caption(
-        f"Pourcentage de semaines où le {mode_label.replace('du ', '').replace('des ', '')} a gagné chaque catégorie en H2H. "
-        "100% = invaincu dans cette catégorie, 0% = jamais gagné."
-    )
+    if mode == "adversaire":
+        st.caption(
+            "Pourcentage de semaines où les adversaires du pooler ont gagné chaque catégorie en H2H. "
+            "Un % élevé signifie que le pooler a affronté des adversaires dominants dans cette catégorie."
+        )
+    else:
+        st.caption(
+            f"Pourcentage de semaines où le pooler a gagné chaque catégorie en H2H. "
+            "100% = invaincu dans cette catégorie, 0% = jamais gagné."
+        )
     win_pct = filter_display_only(tables["win_pct"], display_only)
     st.dataframe(
         style_gradient(win_pct, n_teams, categories_info=[], higher_is_better=True, fmt="pct"),
